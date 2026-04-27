@@ -340,7 +340,7 @@ animation-delay:1.5s;
 🎉 ¡Te tenemos una sorpresa! 🎉
 </div>
 
-<audio id="music" loop>
+<audio id="music">
   <source src="assets/Voicy_Bluey.mp3" type="audio/mpeg">
 </audio>
 
@@ -447,26 +447,68 @@ const audio = document.getElementById("music");
 const intro = document.getElementById("intro");
 const musicBtn = document.querySelector(".music-btn");
 
+let playCount = 0;
+const maxPlays = 5;
+
+let audioBloqueado = false;
+let isPlaying = false;
+
+function startAudio(){
+
+  if(audioBloqueado) return;  
+  if(isPlaying) return;          
+
+  isPlaying = true;
+
+  audio.currentTime = 0;
+
+  audio.play().then(() => {
+
+    playCount++;
+    console.log("Reproducción #", playCount);
+
+    // ocultar botón cuando reproduce
+    musicBtn.style.display = "none";
+
+    if(playCount >= maxPlays){
+      audioBloqueado = true;
+    }
+
+  }).catch(() => {
+    // si falla autoplay → mostrar botón
+    musicBtn.classList.add("show");
+    isPlaying = false;
+  });
+}
+
+audio.addEventListener("ended", () => {
+
+  isPlaying = false;
+
+  if(audioBloqueado){
+    audio.pause();
+    audio.currentTime = 0;
+
+    // ocultar botón definitivamente
+    musicBtn.style.display = "none";
+    return;
+  }
+
+  startAudio(); // siguiente reproducción
+});
 
 intro.addEventListener("animationend", () => {
-  audio.play().then(() => {
-    musicBtn.style.display = "none";
-  }).catch(() => {
-    musicBtn.classList.add("show");
-  });
+  startAudio();
 });
 
 document.addEventListener("click", () => {
   if(audio.paused){
-    audio.play().then(()=>{
-      musicBtn.style.display = "none";
-    }).catch(()=>{});
+    startAudio();
   }
 }, { once:true });
 
 function playMusic(){
-  audio.play();
-  musicBtn.style.display = "none";
+  startAudio();
 }
 
 function getPhone(){
